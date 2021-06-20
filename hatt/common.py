@@ -2,7 +2,9 @@ import random
 import numpy as np
 import hashlib
 import pickle
+from hatt.chiper import *
 
+aes = None
 
 def read_init_crp(rand_puf):
     return rand_puf.randint(0, 65535)
@@ -11,10 +13,12 @@ def get_puf(rand_puf):
     return rand_puf.randint(0, 65535)
 
 def get_pid(id_a, r_i, n_id):
+    global aes
+    aes = AESCipher(str(r_i))
     return hashlib.md5( (str(id_a) + str(r_i) + str(n_id)).encode('utf-8') ).hexdigest()
 
 def get_m1(n_id, pid, s_b, s_w, n_1, r_i):
-    enc_data = [ s_b ^ r_i, s_w ^ r_i, n_1 ^ r_i]
+    enc_data = [ aes.encrypt(s_b) , aes.encrypt(s_w), aes.encrypt(n_1)]
     
     m1 = {'n_id' : n_id, 'pid' : pid, 'enc_data' : enc_data}
 
@@ -23,18 +27,18 @@ def get_m1(n_id, pid, s_b, s_w, n_1, r_i):
 def get_m_2(id_a, n1, n2, r):
     id_enc = ""
     for i in range(len(id_a)):
-        id_enc += str(ord(id_a[i]) ^ r)
+        id_enc += str( aes.encrypt(ord(id_a[i])))
 
-    m2 = {'id_a' : id_enc, 'n1' : n1 ^ r, 'n2' : n2 ^ r}
+    m2 = {'id_a' : id_enc, 'n1' : aes.encrypt(n1), 'n2' : aes.encrypt(n2)}
 
     return m2
 
 def get_m_s(sigma, n1, n2, r):
     sigma_enc = []
     for i in sigma:
-        sigma_enc.append( i ^ r )
+        sigma_enc.append( aes.encrypt(i) )
 
-    m_s = {'sigma_enc' : sigma_enc, 'n1' : n1 ^ r, 'n2' : n2 ^ r}
+    m_s = {'sigma_enc' : sigma_enc, 'n1' : aes.encrypt(n1), 'n2' : aes.encrypt(n2)}
 
     return m_s
 

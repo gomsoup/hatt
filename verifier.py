@@ -3,6 +3,7 @@ import random
 from hatt.common import *
 from hatt.sock import *
 from hatt.memBlock import *
+from hatt.chiper import *
 from _thread import *
 
 init_c = ord('C')
@@ -28,24 +29,27 @@ r = 0
 is_init = True
 
 def decrypt_n1_n2(enc_data, r):
-    n1 = enc_data['n1'] ^ r
-    n2 = enc_data['n2'] ^ r
+    global aes
+    aes = AESCipher(str(r))
+
+    n1 = aes.decrypt(enc_data['n1'])
+    n2 = aes.decrypt(enc_data['n2'])
     
     return n1, n2
 
 def decrypt_ms(ms, r):
-    n1 = ms['n1'] ^ r
-    n2 = ms['n2'] ^ r
+    n1 = aes.decrypt(ms['n1'])
+    n2 = aes.decrypt(ms['n2'])
 
     sigma = []
     for i in ms['sigma_enc']:
-        sigma.append(i ^ r)
+        sigma.append(aes.decrypt(i))
 
     return sigma, n1, n2
 
 def verify_sigma(sigma, prover_sigma):
     for i in range(len(sigma)):
-        if(sigma[i] != prover_sigma[i]):
+        if( str(sigma[i]) != str(prover_sigma[i]) ):
             print("ERROR: SIGMA NOT SAME!!!!")
             exit()
 
@@ -80,7 +84,7 @@ def stage_5(ms, i4):
     print('Verifying I4..')
     verify_i4(i4, id_a, id_s, ms, r)
     
-    stream = open('./a', 'rb')
+    stream = open('C:\\Users\\overflow\\Desktop\\a', 'rb')
     sigma = attBlock(stream, s_b, s_w, r)
     stream.close()
     print('Verifying Sigma...')

@@ -3,6 +3,7 @@ import random
 from hatt.sock import *
 from hatt.common import *
 from hatt.memBlock import *
+from hatt.chiper import *
 from _thread import *
 import time
 
@@ -22,9 +23,12 @@ s_b, s_w =0, 0
 is_init = False
 
 def decrypt_m1_enc_data(enc_data, r):
-    s_b = enc_data[0] ^ r
-    s_w = enc_data[1] ^ r
-    n_1 = enc_data[2] ^ r
+    global aes
+    aes = AESCipher(str(r))
+
+    s_b = aes.decrypt(enc_data[0])
+    s_w = aes.decrypt(enc_data[1])
+    n_1 = aes.decrypt(enc_data[2])
 
     return s_b, s_w, n_1
 
